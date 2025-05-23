@@ -1,12 +1,22 @@
+#######
+#  Codigo para Mostrar os totalizadores do RADOC filtrados por Ano
+#########
+
+
 import numpy as np
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-
-# Codigo para Mostrar os totalizadores do RADOC por compentencia  
 # Carregar dados
 df = pd.read_csv("dados/Dados-RADOCs-2023-2024.csv")
+
+# Sidebar com filtros
+st.sidebar.title("Filtros")
+anos = df["Ano"].unique()
+ano_selecionado = st.sidebar.selectbox("Selecione o Ano", sorted(anos, reverse=True))
+
+df_filtrado = df[df["Ano"] == ano_selecionado]
 
 # Título
 st.title("Painel de Produção Acadêmica e Tecnológica - INF")
@@ -33,43 +43,33 @@ grupos = {
     ]
 }
 
-# Selecionar múltiplos anos
-anos = df["Ano"].unique()
-anos_selecionados = st.sidebar.multiselect(
-    "Selecione os Anos", sorted(anos, reverse=True), default=[max(anos)]
-)
-
-# Dados para o gráfico
+# Calcular os totais por grupo
 dados = {
-    "Ano": [],
     "Grupo": [],
     "Total": []
 }
 
-# Calcular totais por grupo e por ano
-for ano in anos_selecionados:
-    df_ano = df[df["Ano"] == ano]
-    for grupo, colunas in grupos.items():
-        total = df_ano[colunas].sum().sum()  # soma todas as linhas e colunas do grupo
-        dados["Ano"].append(ano)
-        dados["Grupo"].append(grupo)
-        dados["Total"].append(total)
+for grupo, colunas in grupos.items():
+    #total = df_filtrado[colunas].sum(axis=1).values[0]  # soma linha única (ano selecionado)
+    total = df_filtrado[colunas].sum().sum()
+    dados["Grupo"].append(grupo)
+    dados["Total"].append(total)
 
 # Criar DataFrame para plotar
-df_resultado = pd.DataFrame(dados)
+df_grupos = pd.DataFrame(dados)
 
-# Criar gráfico com barras verticais agrupadas por ano
+# Criar gráfico de barras verticais
 fig = px.bar(
-    df_resultado,
-    x="Ano",
+    df_grupos,
+    x="Grupo",
     y="Total",
-    color="Grupo",
-    barmode="group",
-    text_auto=True,
-    title="Total de Atividades por Grupo e Ano",
-    labels={"Ano": "Ano", "Total": "Pontuação"}
+    text="Total",
+    title=f"Total de Atividades por Atividade - {ano_selecionado}",
+    labels={"Grupo": "Grupo de Atividades", "Total": "Pontuação"},
 )
 
-fig.update_layout(xaxis=dict(type='category'))
+fig.update_traces(textposition="outside")
+fig.update_layout(xaxis_tickangle=-30)
 
+# Mostrar no Streamlit
 st.plotly_chart(fig, use_container_width=True)
