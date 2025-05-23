@@ -39,10 +39,10 @@ anos_selecionados = st.sidebar.multiselect(
     "Selecione os Anos", sorted(anos, reverse=True), default=[max(anos)]
 )
 
-# Dados para o gráfico
+# Dados para o gráfico: cada linha será (Grupo, Ano, Total)
 dados = {
-    "Ano": [],
     "Grupo": [],
+    "Ano": [],
     "Total": []
 }
 
@@ -50,26 +50,28 @@ dados = {
 for ano in anos_selecionados:
     df_ano = df[df["Ano"] == ano]
     for grupo, colunas in grupos.items():
-        total = df_ano[colunas].sum().sum()  # soma todas as linhas e colunas do grupo
-        dados["Ano"].append(ano)
+        total = df_ano[colunas].sum().sum()  # soma total das colunas do grupo no ano
         dados["Grupo"].append(grupo)
+        dados["Ano"].append(str(ano))  # converter para string para legenda mais limpa
         dados["Total"].append(total)
 
 # Criar DataFrame para plotar
 df_resultado = pd.DataFrame(dados)
 
-# Criar gráfico com barras verticais agrupadas por ano
+# Criar gráfico de barras agrupado por grupo, colorido por ano
 fig = px.bar(
     df_resultado,
-    x="Ano",
+    x="Grupo",
     y="Total",
-    color="Grupo",
+    color="Ano",
     barmode="group",
     text_auto=True,
-    title="Total de Atividades por Grupo e Ano",
-    labels={"Ano": "Ano", "Total": "Pontuação"}
+    title="Atividades por Grupo e por Ano",
+    labels={"Grupo": "Grupo de Atividades", "Total": "Pontuação"},
+    color_discrete_sequence=["green", "blue", "gray", "orange"]
 )
 
-fig.update_layout(xaxis=dict(type='category'))
+fig.update_layout(xaxis_tickangle=-30)
 
+# Mostrar no Streamlit
 st.plotly_chart(fig, use_container_width=True)
