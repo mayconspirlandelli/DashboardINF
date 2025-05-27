@@ -10,6 +10,7 @@ df = pd.read_csv("dados/Dados-RADOCs-2023-2024.csv")
 
 # Título
 st.title("Painel de Produção Acadêmica e Tecnológica - INF")
+st.header("Totalizadores")
 
 # Mapear os grupos principais às suas subcolunas
 grupos = {
@@ -86,7 +87,6 @@ fig = px.bar(
     color_discrete_sequence=["green", "blue", "gray", "orange"]
 )
 
-
 # Ensino, Produção Intelectual, Pesquisa, Extensão, Administrativas, Outras Atividades
 fig.update_layout(xaxis_tickangle=-30)
 
@@ -94,16 +94,38 @@ fig.update_layout(xaxis_tickangle=-30)
 st.plotly_chart(fig, use_container_width=True)
 
 
+#***** Gráfico de Pizza. *************
+st.header("Produção Média do INF")
+
 # Agrupar dados por grupo (somando todos os anos selecionados)
-df_pizza = df_resultado.groupby("Grupo")["Total"].sum().reset_index()
+# df_pizza = df_resultado.groupby("Grupo")["Total"].sum().reset_index()
+
+# # Criar gráfico de pizza
+# fig_pizza = px.pie(
+#     df_pizza,
+#     names="Grupo",
+#     values="Total",
+#     title="Distribuição das Atividades por Grupo",
+#     hole=0.5  # se quiser tipo "donut", senão use hole=0 ou remova esse argumento
+# )
+
+# # Exibir no Streamlit
+# st.plotly_chart(fig_pizza, use_container_width=True)
+
+
+# Sidebar para selecionar um único ano (pizza)
+ano_pizza = st.sidebar.selectbox("Selecione o ano para o gráfico de pizza:", sorted(anos))
+
+# Filtrar os dados do ano selecionado
+df_pizza = df_resultado[df_resultado["Ano"] == str(ano_pizza)]
 
 # Criar gráfico de pizza
 fig_pizza = px.pie(
     df_pizza,
     names="Grupo",
     values="Total",
-    title="Distribuição das Atividades por Grupo",
-    hole=0.5  # se quiser tipo "donut", senão use hole=0 ou remova esse argumento
+    title=f"Distribuição das Atividades por Grupo - {ano_pizza}",
+    hole=0.5  # donut
 )
 
 # Exibir no Streamlit
